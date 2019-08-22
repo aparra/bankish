@@ -40,7 +40,7 @@ public class BankControllerCreateAccountTest extends WithApplication {
         AccountResponse accountResponse = contentAsTypeClass(result, AccountResponse.class);
         assertNotNull(accountResponse.id);
         assertEquals(holder, accountResponse.holder);
-        assertEquals(createAccountRequest.firstDepositAmount.toString(), accountResponse.balance);
+        assertEquals(createAccountRequest.firstDepositAmount.toPlainString(), accountResponse.balance);
     }
 
     @Test

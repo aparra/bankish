@@ -13,7 +13,7 @@ public final class AccountResponse {
             AccountResponse response = new AccountResponse();
             response.id = account.getId().toString();
             response.holder = account.getHolder();
-            response.balance = account.getBalance().toString();
+            response.balance = account.getBalance().setScale(2).toPlainString();
             return response;
         }
     }

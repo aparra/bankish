@@ -11,7 +11,7 @@ public class Fixtures {
     public static CreateAccountRequest createAccountRequest(String holder) {
         CreateAccountRequest request = new CreateAccountRequest();
         request.holder = holder;
-        request.firstDepositAmount = new BigDecimal("10.0");
+        request.firstDepositAmount = new BigDecimal("10.00");
         return request;
     }
 
