@@ -1,0 +1,43 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+###
+# summary: Create a new account
+# description: Create a new account with initial deposit.
+# parameters:
+#   - name: body
+#     required: true
+#     description: Object serialized as JSON
+# responses:
+#   200:
+#     description: OK
+#   500:
+#     description: Failed
+#     schema:
+#       type: object
+#       properties:
+#         message:
+#           type: string
+###
+POST          /api/v1/account                        controllers.BankController.create(request: Request)
+
+###
+# summary: Transfer amount from account X to account Y
+# description: Transfer amount (> 0) from account X to account Y.
+# parameters:
+#   - name: body
+#     required: true
+#     description: Object serialized as JSON
+# responses:
+#   200:
+#     description: OK
+#   500:
+#     description: Failed
+#     schema:
+#       type: object
+#       properties:
+#         message:
+#           type: string
+###
+POST          /api/v1/account/transfer                controllers.BankController.transfer(request: Request)
