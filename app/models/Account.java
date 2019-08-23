@@ -44,31 +44,39 @@ public class Account implements Serializable {
         return balance;
     }
 
-    public BigDecimal withdraw(BigDecimal amount) throws Exceptions.InsufficientBalanceException {
-        if (!canWithdraw(amount)) {
+    public UUID withdraw(AccountEvents.WithdrawEvent event) throws Exceptions.InsufficientBalanceException {
+        if (!canWithdraw(event.getAmount())) {
             throw new Exceptions.InsufficientBalanceException(this.id);
         }
-        balance = balance.subtract(amount);
-        transactions.add(Transaction.builder().at(now()).debit(amount).build());
-        return amount;
+        balance = balance.subtract(event.getAmount());
+        transactions.add(Transaction.builder().id(event.getId()).at(now()).debit(event.getAmount()).build());
+        return event.getId();
     }
 
     private boolean canWithdraw(BigDecimal amount) {
         return balance.compareTo(amount) >= 0;
     }
 
-    public void deposit(BigDecimal amount) {
-        balance = balance.add(amount);
-        Transaction t = Transaction.builder().at(now()).credit(amount).build();
-        transactions.add(Transaction.builder().at(now()).credit(amount).build());
+    public void deposit(AccountEvents.DepositEvent event) {
+        balance = balance.add(event.getAmount());
+        transactions.add(Transaction.builder().id(event.getId()).at(now()).credit(event.getAmount()).build());
     }
 
-    public TransferReceipt transfer(BigDecimal amount, Account to) throws Exceptions.InsufficientBalanceException {
-        synchronized (Transfers.primaryLock(this, to)) {
-            synchronized (Transfers.secondaryLock(this, to)) {
-                this.withdraw(amount);
-                to.deposit(amount);
-                return TransferReceipt.builder().at(now()).fromAccountId(this.id).toAccountId(to.id).amount(amount).build();
+    public TransferReceipt transfer(AccountEvents.TransferEvent event) throws Exceptions.InsufficientBalanceException {
+        synchronized (Transfers.primaryLock(this, event.getTo())) {
+            synchronized (Transfers.secondaryLock(this, event.getTo())) {
+                AccountEvents.WithdrawEvent withdrawEvent = new AccountEvents.WithdrawEvent(event.getId(), event.getAmount());
+                this.withdraw(withdrawEvent);
+
+                AccountEvents.DepositEvent depositEvent = new AccountEvents.DepositEvent(event.getId(), event.getAmount());
+                event.getTo().deposit(depositEvent);
+
+                return TransferReceipt.builder()
+                        .at(now())
+                        .fromAccountId(this.id)
+                        .toAccountId(event.getTo().id)
+                        .amount(event.getAmount())
+                        .build();
             }
         }
     }

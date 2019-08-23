@@ -3,6 +3,7 @@ package helpers;
 import dtos.CreateAccountRequest;
 import dtos.TransferRequest;
 import models.Account;
+import models.AccountEvents;
 
 import java.math.BigDecimal;
 
@@ -25,7 +26,7 @@ public class Fixtures {
 
     public static Account createAccount(String holder, BigDecimal initialDepositAmount) {
         Account account = new Account(holder);
-        account.deposit(initialDepositAmount);
+        account.deposit(new AccountEvents.DepositEvent(initialDepositAmount));
         return account;
     }
 }

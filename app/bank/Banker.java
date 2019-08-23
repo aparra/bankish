@@ -5,6 +5,7 @@ import dtos.CreateAccountRequest;
 import dtos.TransferRequest;
 import dtos.TransferResponse;
 import models.Account;
+import models.AccountEvents;
 import models.Exceptions;
 import models.TransferReceipt;
 import repositories.AccountRepository;
@@ -26,13 +27,14 @@ public class Banker {
 
     public CompletionStage<AccountResponse> createAccount(CreateAccountRequest request) {
         Account account = new Account(request.holder);
-        account.deposit(request.firstDepositAmount);
+        account.deposit(new AccountEvents.DepositEvent(request.firstDepositAmount));
         return accountRepository.store(account).thenApply(a -> new AccountResponse.Builder().from(a));
     }
 
     public CompletionStage<TransferResponse> transfer(TransferRequest request) {
         return this.getAccountBy(request.from).thenCombineAsync(this.getAccountBy(request.to), (from, to) -> {
-            TransferReceipt receipt = from.transfer(request.amount, to);
+            AccountEvents.TransferEvent transferEvent = new AccountEvents.TransferEvent(request.amount, to);
+            TransferReceipt receipt = from.transfer(transferEvent);
             return new TransferResponse.Builder().from(receipt);
         });
     }
