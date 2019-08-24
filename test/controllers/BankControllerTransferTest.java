@@ -1,5 +1,6 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dtos.AccountResponse;
 import dtos.TransferRequest;
 import dtos.TransferResponse;
@@ -111,6 +112,41 @@ public class BankControllerTransferTest extends WithApplication {
 
         String expectedMessage = String.format("{\"message\":\"Account %s was not found\"}", transferRequest.to);
         assertEquals(expectedMessage, contentAsString(result));
+    }
+
+    @Test
+    public void should_not_make_a_transfer_when_request_is_incomplete() {
+        UUID fromAccountId = UUID.randomUUID();
+
+        String payload = String.format("{\"from\":\"%s\",\"amount\":1000}", fromAccountId.toString());
+        JsonNode incompleteAccountRequest = Json.parse(payload);
+
+        Http.RequestBuilder request = new Http.RequestBuilder()
+                .method(POST)
+                .bodyJson(incompleteAccountRequest)
+                .uri("/api/v1/account/transfer");
+
+        Result result = route(app, request);
+        assertEquals(BAD_REQUEST, result.status());
+        assertEquals("{\"to\":[\"This field is required\"]}", contentAsString(result));
+    }
+
+    @Test
+    public void should_not_make_a_transfer_when_amount_is_less_then_one() {
+        AccountResponse fromAccount = createAccountFor("Anderson From");
+        UUID toAccountId = UUID.randomUUID();
+        BigDecimal transferAmount = BigDecimal.ZERO;
+
+        TransferRequest transferRequest = createTransferRequest(fromAccount.id, toAccountId.toString(), transferAmount);
+
+        Http.RequestBuilder request = new Http.RequestBuilder()
+                .method(POST)
+                .bodyJson(Json.toJson(transferRequest))
+                .uri("/api/v1/account/transfer");
+
+        Result result = route(app, request);
+        assertEquals(BAD_REQUEST, result.status());
+        assertEquals("{\"amount\":[\"Must be greater or equal to 1\"]}", contentAsString(result));
     }
 
     private AccountResponse createAccountFor(String holder) {

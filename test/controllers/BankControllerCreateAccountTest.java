@@ -1,5 +1,6 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import dtos.AccountResponse;
 import dtos.CreateAccountRequest;
 import org.junit.Test;
@@ -40,19 +41,22 @@ public class BankControllerCreateAccountTest extends WithApplication {
         AccountResponse accountResponse = contentAsTypeClass(result, AccountResponse.class);
         assertNotNull(accountResponse.id);
         assertEquals(holder, accountResponse.holder);
-        assertEquals(createAccountRequest.firstDepositAmount.toPlainString(), accountResponse.balance);
+        assertEquals(createAccountRequest.getFirstDepositAmount().toPlainString(), accountResponse.balance);
     }
 
     @Test
     public void should_not_create_an_account_when_request_is_incomplete() {
-        CreateAccountRequest incompleteAccountRequest = new CreateAccountRequest();
+        JsonNode incompleteAccountRequest = Json.parse("{\"holder\":\"Anderson\"}");
 
         Http.RequestBuilder request = new Http.RequestBuilder()
                 .method(POST)
-                .bodyJson(Json.toJson(incompleteAccountRequest))
+                .bodyJson(incompleteAccountRequest)
                 .uri("/api/v1/account");
 
         Result result = route(app, request);
-        assertEquals(INTERNAL_SERVER_ERROR, result.status());
+        assertEquals(BAD_REQUEST, result.status());
+
+        String expectedMessage = "{\"firstDepositAmount\":[\"This field is required\"]}";
+        assertEquals(expectedMessage, contentAsString(result));
     }
 }

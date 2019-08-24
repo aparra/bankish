@@ -26,8 +26,8 @@ public class Banker {
     }
 
     public CompletionStage<AccountResponse> createAccount(CreateAccountRequest request) {
-        Account account = new Account(request.holder);
-        account.deposit(new AccountEvents.DepositEvent(request.firstDepositAmount));
+        Account account = new Account(request.getHolder());
+        account.deposit(new AccountEvents.DepositEvent(request.getFirstDepositAmount()));
         return accountRepository.store(account).thenApply(a -> new AccountResponse.Builder().from(a));
     }
 
