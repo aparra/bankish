@@ -9,6 +9,6 @@ public class Transfers {
     }
 
     public static Account secondaryLock(Account a1, Account a2) {
-        return (a1.getId().compareTo(a2.getId()) < 0) ? a2 : a1;
+        return (a1.getId().compareTo(a2.getId()) > 0) ? a2 : a1;
     }
 }
